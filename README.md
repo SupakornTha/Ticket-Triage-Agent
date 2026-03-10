@@ -40,6 +40,7 @@ Example output: Triage results for 3 sample tickets saved to `output/TKT_*.json`
 Process tickets using GPT-4o-mini for live analysis:
 
 **Prerequisites:**
+
 - Python 3.8+
 - OpenAI API key (get one from https://platform.openai.com/api-keys)
 
