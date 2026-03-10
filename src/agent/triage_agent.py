@@ -27,7 +27,7 @@ class TicketTriageAgent:
             )
         
         self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-4"  # Using GPT-4 for better reasoning
+        self.model = "gpt-4o-mini"  # Using GPT-4o mini for better reasoning and cost efficiency
         
     def _build_tool_instructions(self) -> str:
         """Build instructions for available tools."""
@@ -146,13 +146,13 @@ Return your analysis as a JSON object."""
         ]
         
         # Make first request
-        response = self.client.messages.create(
+        response = self.client.chat.completions.create(
             model=self.model,
             max_tokens=2000,
             messages=messages_list
         )
         
-        assistant_message = response.content[0].text
+        assistant_message = response.choices[0].message.content
         
         # Parse and execute tool calls
         tool_calls = self._parse_tool_calls(assistant_message)
@@ -196,13 +196,13 @@ Now provide your final triage decision as a JSON object with these fields:
 }}"""
             })
             
-            response = self.client.messages.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 max_tokens=2000,
                 messages=messages_list
             )
             
-            final_message = response.content[0].text
+            final_message = response.choices[0].message.content
         else:
             final_message = assistant_message
         

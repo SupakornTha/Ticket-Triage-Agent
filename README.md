@@ -13,50 +13,82 @@ An intelligent AI-powered agent that automatically triages incoming customer sup
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: Demo Mode (No API Key Required)
 
-- Python 3.8+
-- OpenAI API key (GPT-4 access required)
+See example triage outputs without making any API calls:
 
-### Setup
-
-1. **Clone the repository** (or unzip the source code):
 ```bash
-git clone <repository-url>
-cd OOCA_Task
+# 1. Clone the repository
+git clone https://github.com/SupakornTha/OOCA_Assignment.git
+cd OOCA_Assignment
+
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run demo (shows example outputs)
+python demo.py
+```
+
+Example output: Triage results for 3 sample tickets saved to `output/TKT_*.json`.
+
+### Option 2: Real Agent with OpenAI API
+
+Process tickets using GPT-4o-mini for live analysis:
+
+**Prerequisites:**
+- Python 3.8+
+- OpenAI API key (get one from https://platform.openai.com/api-keys)
+
+**Setup:**
+
+1. **Clone the repository**:
+
+```bash
+git clone https://github.com/SupakornTha/OOCA_Assignment.git
+cd OOCA_Assignment
 ```
 
 2. **Create a virtual environment**:
+
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. **Install dependencies**:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. **Set your OpenAI API key**:
+
+Create a `.env` file from the template:
+
 ```bash
-export OPENAI_API_KEY='your-api-key-here'
+cp .env.example .env
 ```
 
-On Windows:
-```cmd
-set OPENAI_API_KEY=your-api-key-here
+Edit `.env` and add your API key:
+
+```bash
+OPENAI_API_KEY=sk-your-actual-key-here
 ```
 
-### Run the Agent
+5. **Run the agent**:
 
-Process the sample tickets:
 ```bash
 python main.py
 ```
 
 The agent will:
+
 1. Load three sample support tickets
-2. Use GPT-4 to analyze each ticket
+2. Use GPT-4o-mini to analyze each ticket
 3. Search the knowledge base for relevant solutions
 4. Look up customer history
 5. Make triage decisions
@@ -139,6 +171,7 @@ result = agent.triage_ticket({
 ### Tools
 
 **1. Search Knowledge Base**
+
 ```python
 from src.tools.knowledge_base import search_knowledge_base
 
@@ -147,6 +180,7 @@ results = search_knowledge_base("payment failed")
 ```
 
 **2. Get Customer History**
+
 ```python
 from src.tools.customer_history import get_customer_history
 
@@ -180,6 +214,7 @@ The project includes 3 diverse test cases:
 ### System Prompts
 
 Edit `src/agent/prompts.py` to customize:
+
 - Triage instructions and criteria
 - Response templates for different issue types
 - Escalation criteria
@@ -187,6 +222,7 @@ Edit `src/agent/prompts.py` to customize:
 ### Knowledge Base
 
 Edit `src/tools/knowledge_base.py` to:
+
 - Add new FAQ articles
 - Modify search keywords
 - Update solution content
@@ -194,6 +230,7 @@ Edit `src/tools/knowledge_base.py` to:
 ### Customer Data
 
 Edit `src/tools/customer_history.py` to:
+
 - Add customer accounts
 - Modify urgency flags
 - Change SLA tiers
@@ -222,23 +259,27 @@ Edit `src/tools/customer_history.py` to:
 ## Troubleshooting
 
 ### "OpenAI API key not provided"
+
 ```bash
 export OPENAI_API_KEY='your-api-key-here'
 python main.py
 ```
 
 ### "Could not parse agent response"
+
 - May occur if GPT response format doesn't match expectations
 - Agent will return raw response for debugging
 - Check system prompts for JSON instruction clarity
 
 ### Rate limiting
+
 - OpenAI API may rate limit high volumes
 - Implement backoff logic in production (see ARCHITECTURE.md)
 
 ## Evaluation in Production
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for:
+
 - Production metrics to track
 - Confusion matrix for classification accuracy
 - Human review sampling strategy
