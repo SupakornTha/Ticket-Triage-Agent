@@ -1,22 +1,60 @@
 """Knowledge base search tool for the triage agent.
 
-Knowledge base articles are defined as a simple list of dictionaries.
-Each article has: id, title, content, and keywords for searching.
+This module provides article search and retrieval for the triage agent.
+Articles are structured with id, title, keywords, and content.
 
-To add a new article, append to KB_ARTICLES list:
-    KB_ARTICLES.append({
-        "id": "unique_id",
+Structure of each article:
+    {
+        "id": "unique_identifier",
         "title": "Article Title",
-        "content": "...",
-        "keywords": ["keyword1", "keyword2"]
-    })
+        "keywords": ["keyword1", "keyword2"],
+        "content": "Article content..."
+    }
+
+To add new articles, append to KB_ARTICLES list with the above structure.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, TypedDict, Optional
 
 
-# Knowledge base articles - easy to modify and extend
-KB_ARTICLES = [
+# ============================================================================
+# Type Definitions
+# ============================================================================
+
+class KBArticle(TypedDict):
+    """Type definition for knowledge base articles."""
+    id: str
+    title: str
+    keywords: List[str]
+    content: str
+
+
+class SearchResult(TypedDict):
+    """Type definition for search results."""
+    id: str
+    title: str
+    content: str
+    relevance_score: float
+
+
+# ============================================================================
+# Search Configuration
+# ============================================================================
+
+# Scoring weights for different match types
+KEYWORD_MATCH_WEIGHT = 2.0      # Highest priority: exact keyword match
+TITLE_MATCH_WEIGHT = 1.0        # Medium priority: title contains query
+CONTENT_MATCH_WEIGHT = 0.5      # Lowest priority: content contains query
+
+# Default number of search results to return
+DEFAULT_MAX_RESULTS = 3
+
+
+# ============================================================================
+# Knowledge Base Articles
+# ============================================================================
+
+KB_ARTICLES: List[KBArticle] = [
     {
         "id": "billing_failed_payment",
         "title": "Why did my payment fail?",
@@ -130,71 +168,125 @@ Workaround:
 ]
 
 
-def search_knowledge_base(query: str, max_results: int = 3) -> List[Dict[str, Any]]:
+def search_knowledge_base(query: str, max_results: int = DEFAULT_MAX_RESULTS) -> List[SearchResult]:
     """
-    Search the knowledge base for relevant articles.
+    Search the knowledge base for articles matching the query.
+    
+    Uses relevance scoring to rank results by match type:
+    - Keyword matches (weight: 2.0) - highest priority
+    - Title matches (weight: 1.0) - medium priority  
+    - Content matches (weight: 0.5) - lowest priority
     
     Args:
-        query: Search query string
+        query: Search query string. Case-insensitive.
         max_results: Maximum number of results to return (default: 3)
         
     Returns:
-        List of matching articles sorted by relevance
+        List of matching articles sorted by relevance_score (highest first).
+        Each result includes id, title, content, and relevance_score.
+        Returns empty list if no matches found.
+        
+    Example:
+        >>> results = search_knowledge_base("payment failed")
+        >>> for article in results:
+        ...     print(f"{article['title']} (score: {article['relevance_score']})")
     """
-    query_lower = query.lower()
-    results = []
+    if not query or not query.strip():
+        return []
+    
+    query_lower = query.lower().strip()
+    results: List[SearchResult] = []
     
     for article in KB_ARTICLES:
-        score = 0
-        
-        # Keyword matches (highest priority)
-        for keyword in article["keywords"]:
-            if keyword in query_lower:
-                score += 2
-        
-        # Title match (medium priority)
-        if query_lower in article["title"].lower():
-            score += 1
-        
-        # Content match (lowest priority)
-        if query_lower in article["content"].lower():
-            score += 0.5
+        score = _calculate_relevance_score(query_lower, article)
         
         if score > 0:
-            results.append({
+            search_result: SearchResult = {
                 "id": article["id"],
                 "title": article["title"],
                 "content": article["content"],
                 "relevance_score": score
-            })
+            }
+            results.append(search_result)
     
-    # Sort by relevance and return top N
+    # Sort by relevance (highest score first) and return top N results
     results.sort(key=lambda x: x["relevance_score"], reverse=True)
     return results[:max_results]
 
 
-def get_article(article_id: str) -> Dict[str, Any] | None:
+def _calculate_relevance_score(query_lower: str, article: KBArticle) -> float:
     """
-    Get a specific article by ID.
+    Calculate relevance score for an article based on query match.
+    
+    Scoring breakdown:
+    - Each keyword match: +2.0
+    - Title match: +1.0
+    - Content match: +0.5
     
     Args:
-        article_id: The article ID
+        query_lower: Lowercase query string
+        article: Knowledge base article to score
         
     Returns:
-        Article dict or None if not found
+        Total relevance score (0 if no matches)
     """
+    score = 0.0
+    
+    # Keyword matches (highest priority)
+    for keyword in article["keywords"]:
+        if keyword in query_lower:
+            score += KEYWORD_MATCH_WEIGHT
+    
+    # Title match (medium priority)
+    if query_lower in article["title"].lower():
+        score += TITLE_MATCH_WEIGHT
+    
+    # Content match (lowest priority)
+    if query_lower in article["content"].lower():
+        score += CONTENT_MATCH_WEIGHT
+    
+    return score
+
+
+def get_article(article_id: str) -> Optional[KBArticle]:
+    """
+    Retrieve a specific article by its ID.
+    
+    Args:
+        article_id: Unique identifier of the article
+        
+    Returns:
+        Article dictionary if found, None otherwise
+        
+    Example:
+        >>> article = get_article("billing_failed_payment")
+        >>> if article:
+        ...     print(article["title"])
+    """
+    if not article_id:
+        return None
+    
     for article in KB_ARTICLES:
         if article["id"] == article_id:
             return article
+    
     return None
 
 
-def list_all_articles() -> List[Dict[str, str]]:
+def list_all_articles() -> List[Dict[str, Any]]:
     """
     Get a list of all available articles (metadata only).
     
+    Useful for displaying available articles or checking article inventory.
+    
     Returns:
-        List of articles with id, title, and keyword count
+        List of dictionaries with: id, title, keywords_count
+        
+    Example:
+        >>> articles = list_all_articles()
+        >>> print(f"Total articles: {len(articles)}")
+        >>> for article in articles:
+        ...     print(f"  - {article['title']} ({article['keywords_count']} keywords)")
     """
     return [
         {
