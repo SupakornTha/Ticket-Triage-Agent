@@ -77,7 +77,7 @@ A production-ready Support Ticket Triage Agent has been developed with the follo
 
 ```bash
 # 1. Navigate to project
-cd /Users/sun/Documents/00_Work/01_CodingRelate/OOCA_Task
+cd Ticket-Triage-Agent
 
 # 2. Create virtual environment
 python3 -m venv venv
@@ -99,8 +99,9 @@ python3 main.py
 ### Project Structure
 
 ```
-OOCA_Task/
-├── main.py                          # Entry point - processes sample tickets
+Ticket-Triage-Agent/
+├── main.py                          # Entry point - real OpenAI API
+├── demo.py                          # Demo mode - example outputs
 ├── validate.py                      # Validation script for setup verification
 ├── requirements.txt                 # Dependencies (openai, python-dotenv)
 ├── README.md                        # Setup & usage guide
@@ -115,8 +116,9 @@ OOCA_Task/
 │   └── tools/
 │       ├── knowledge_base.py       # KB search tool (80 lines)
 │       └── customer_history.py     # Customer lookup tool (93 lines)
-└── data/
-    └── sample_tickets.py           # 3 test tickets (75 lines)
+├── data/
+│   └── sample_tickets.py           # 3 test tickets (75 lines)
+└── output/                         # Triage results (created on run)
 ```
 
 ### Total Code Delivered
@@ -236,7 +238,7 @@ git push -u origin master
 
 ```bash
 cd /Users/sun/Documents/00_Work/01_CodingRelate
-zip -r OOCA_Task.zip OOCA_Task/
+zip -r Ticket-Triage-Agent.zip Ticket-Triage-Agent/
 ```
 
 Same git history and structure are preserved in both options.

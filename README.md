@@ -19,8 +19,8 @@ See example triage outputs without making any API calls:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/SupakornTha/OOCA_Assignment.git
-cd OOCA_Assignment
+git clone https://github.com/SupakornTha/Ticket-Triage-Agent.git
+cd Ticket-Triage-Agent
 
 # 2. Create virtual environment
 python3 -m venv venv
@@ -48,8 +48,8 @@ Process tickets using GPT-4o-mini for live analysis:
 1. **Clone the repository**:
 
 ```bash
-git clone https://github.com/SupakornTha/OOCA_Assignment.git
-cd OOCA_Assignment
+git clone https://github.com/SupakornTha/Ticket-Triage-Agent.git
+cd Ticket-Triage-Agent
 ```
 
 2. **Create a virtual environment**:
@@ -121,8 +121,9 @@ TICKET: TKT_001
 ## Project Structure
 
 ```
-OOCA_Task/
+Ticket-Triage-Agent/
 ├── main.py                          # Entry point
+├── demo.py                          # Demo mode (no API cost)
 ├── requirements.txt                 # Python dependencies
 ├── README.md                        # This file
 ├── ARCHITECTURE.md                  # Design decisions & evaluation
