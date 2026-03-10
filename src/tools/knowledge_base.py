@@ -1,11 +1,26 @@
-"""Knowledge base search tool for the triage agent."""
+"""Knowledge base search tool for the triage agent.
+
+Knowledge base articles are defined as a simple list of dictionaries.
+Each article has: id, title, content, and keywords for searching.
+
+To add a new article, append to KB_ARTICLES list:
+    KB_ARTICLES.append({
+        "id": "unique_id",
+        "title": "Article Title",
+        "content": "...",
+        "keywords": ["keyword1", "keyword2"]
+    })
+"""
 
 from typing import Dict, List, Any
 
-# Mock knowledge base with FAQ and documentation
-KNOWLEDGE_BASE = {
-    "billing_failed_payment": {
+
+# Knowledge base articles - easy to modify and extend
+KB_ARTICLES = [
+    {
+        "id": "billing_failed_payment",
         "title": "Why did my payment fail?",
+        "keywords": ["payment", "failed", "charge", "billing", "card", "upgrade"],
         "content": """Common reasons for payment failures:
 1. Incorrect card details or expired card
 2. Insufficient funds
@@ -17,11 +32,12 @@ Solutions:
 - Try with a different payment method
 - Contact your bank to verify the merchant is allowed
 - Wait 24 hours and retry (if temporary hold)
-- Check for pending charges before retrying""",
-        "keywords": ["payment", "failed", "charge", "billing", "card", "upgrade"]
+- Check for pending charges before retrying"""
     },
-    "billing_duplicate_charges": {
+    {
+        "id": "billing_duplicate_charges",
         "title": "How do duplicate charges occur and get reversed?",
+        "keywords": ["duplicate", "charge", "refund", "pending", "reversed"],
         "content": """Understanding duplicate charges:
 - Failed transactions can trigger retry mechanisms
 - Each retry attempt may appear as a separate pending charge
@@ -32,11 +48,12 @@ Reversal process:
 - Most duplicates auto-reverse within one billing cycle
 - Automatic refunds are typically processed within 5-7 business days
 - If not auto-resolved, submit a support ticket with specific charge dates
-- Enterprise customers: escalated to billing team within 2 hours""",
-        "keywords": ["duplicate", "charge", "refund", "pending", "reversed", "billing"]
+- Enterprise customers: escalated to billing team within 2 hours"""
     },
-    "access_error500": {
+    {
+        "id": "access_error500",
         "title": "What does Error 500 mean?",
+        "keywords": ["error", "500", "can't access", "system", "down", "loading"],
         "content": """Error 500 indicates: Internal Server Error
 This means something went wrong on our systems, not your side.
 
@@ -44,18 +61,19 @@ Troubleshooting:
 1. Try a different browser (Chrome, Firefox, Safari)
 2. Clear browser cache and cookies
 3. Try from a different device or network
-4. Check https://status.company.com for ongoing incidents
+4. Check status.company.com for ongoing incidents
 
 If still failing:
 - Provide browser console errors (F12 > Console)
 - Specify your region and browser details
-- This will be escalated to engineering immediately""",
-        "keywords": ["error", "500", "can't access", "system", "down", "loading"]
+- This will be escalated to engineering immediately"""
     },
-    "access_regional_outage": {
+    {
+        "id": "access_regional_outage",
         "title": "Is there an outage in my region?",
+        "keywords": ["outage", "region", "down", "error", "status"],
         "content": """How to check for regional outages:
-1. Visit https://status.company.com for real-time status
+1. Visit status.company.com for real-time status
 2. System checks by region (Americas, Europe, Asia)
 3. Look for 'Operational', 'Degraded', or 'Outage' status
 
@@ -67,12 +85,12 @@ For Enterprise customers:
 Regional outage markers:
 - Multiple users in same region reporting same error
 - Status page shows degradation or outage
-- Timeline correlates with issue start time
-- Affects specific services (API, Web, etc.)""",
-        "keywords": ["outage", "region", "down", "error", "status", "asia", "thailand"]
+- Timeline correlates with issue start time"""
     },
-    "appearance_dark_mode": {
+    {
+        "id": "appearance_dark_mode",
         "title": "How to enable dark mode?",
+        "keywords": ["dark mode", "theme", "appearance", "light", "system"],
         "content": """Enabling dark mode in our application:
 
 Pro Plan and above:
@@ -80,21 +98,19 @@ Pro Plan and above:
 2. Select 'System Default' or 'Light'
 3. 'System Default' respects your OS dark mode setting
 
-Note: Dark mode toggle depends on your plan:
+Note: Dark mode availability by plan:
 - Free & Startup: Light mode only
 - Pro & above: System Default option available
 
 For Mac users:
 - Enable dark mode in macOS: System Preferences > General > Dark
-- Our app will respect this when set to 'System Default'
-
-Known issues:
-- Some older app versions don't update immediately on OS theme change
-- Solution: Restart the app or toggle the option""",
-        "keywords": ["dark mode", "theme", "appearance", "light", "system", "settings"]
+- App will respect this when set to 'System Default'
+- Restart the app if theme doesn't update immediately"""
     },
-    "feature_dark_mode_schedule": {
+    {
+        "id": "feature_dark_mode_schedule",
         "title": "Can dark mode be scheduled?",
+        "keywords": ["schedule", "dark mode", "time", "auto", "feature"],
         "content": """Scheduled dark mode feature:
 
 Current availability:
@@ -105,53 +121,87 @@ Current availability:
 Future roadmap:
 - In-app dark mode scheduling is under consideration
 - Vote on feature requests to help prioritize development
-- Estimated timeline: TBD (depends on priority ranking)
+- Estimated timeline: TBD
 
 Workaround:
 - Configure your OS to switch themes on a schedule
-- App will automatically follow when set to System Default""",
-        "keywords": ["schedule", "dark mode", "time", "auto", "feature"]
+- App will automatically follow when set to System Default"""
     }
-}
+]
 
-def search_knowledge_base(query: str) -> List[Dict[str, Any]]:
+
+def search_knowledge_base(query: str, max_results: int = 3) -> List[Dict[str, Any]]:
     """
     Search the knowledge base for relevant articles.
     
     Args:
         query: Search query string
+        max_results: Maximum number of results to return (default: 3)
         
     Returns:
-        List of matching knowledge base articles with relevance scores
+        List of matching articles sorted by relevance
     """
     query_lower = query.lower()
     results = []
     
-    for key, article in KNOWLEDGE_BASE.items():
-        relevance_score = 0
+    for article in KB_ARTICLES:
+        score = 0
         
-        # Check keywords
+        # Keyword matches (highest priority)
         for keyword in article["keywords"]:
             if keyword in query_lower:
-                relevance_score += 2
+                score += 2
         
-        # Check title
+        # Title match (medium priority)
         if query_lower in article["title"].lower():
-            relevance_score += 1
+            score += 1
         
-        # Check content
+        # Content match (lowest priority)
         if query_lower in article["content"].lower():
-            relevance_score += 0.5
+            score += 0.5
         
-        if relevance_score > 0:
+        if score > 0:
             results.append({
-                "id": key,
+                "id": article["id"],
                 "title": article["title"],
                 "content": article["content"],
-                "relevance_score": relevance_score
+                "relevance_score": score
             })
     
-    # Sort by relevance score
+    # Sort by relevance and return top N
     results.sort(key=lambda x: x["relevance_score"], reverse=True)
+    return results[:max_results]
+
+
+def get_article(article_id: str) -> Dict[str, Any] | None:
+    """
+    Get a specific article by ID.
     
-    return results[:3]  # Return top 3 results
+    Args:
+        article_id: The article ID
+        
+    Returns:
+        Article dict or None if not found
+    """
+    for article in KB_ARTICLES:
+        if article["id"] == article_id:
+            return article
+    return None
+
+
+def list_all_articles() -> List[Dict[str, str]]:
+    """
+    Get a list of all available articles (metadata only).
+    
+    Returns:
+        List of articles with id, title, and keyword count
+    """
+    return [
+        {
+            "id": article["id"],
+            "title": article["title"],
+            "keywords_count": len(article["keywords"])
+        }
+        for article in KB_ARTICLES
+    ]
+
